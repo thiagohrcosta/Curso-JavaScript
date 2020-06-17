@@ -11,22 +11,33 @@ server.use(express.json());
 const users = ['João', 'Ana', 'Pedro', 'Maria'];
 
 server.use((req, res, next) =>{
-  console.log('A requisição foi chamada!')
+  console.time('Request');
+  console.log(`Método: ${req.method}; URL: ${req.url};`);
 
-  return next();
-})
+  next();
+
+  console.timeEnd('Request');
+});
+
+function checkUserExists(req, res, next){
+  if(!req.body.user){
+    return res.status(400).json( { error: 'Users not found on request body'});
+  }
+    return next();
+}
+
 
 server.get('/users', (req, res) =>{
   return res.json(users);
 })
 
-server.get('/users/:index', (req, res)=> {
+server.get('/users/:index', checkUserExists, (req, res)=> {
   const {index} = req.params;
 
   return res.json(users[index]);
 });
 
-server.post('/users', (req, res) => {
+server.post('/users', checkUserExists, (req, res) => {
   const { name } = req.body;
 
   users.push(name);
